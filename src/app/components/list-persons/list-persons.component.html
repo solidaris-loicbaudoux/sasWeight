@@ -1,10 +1,14 @@
-<div class="card">
-    <p-toast />
-    <p-table stripedRows 
-    [loading]="loadingData" 
+<div class="bg-surface-50 dark:bg-surface-950 px-6 py-20 md:px-12 lg:px-20">
+
+<form [formGroup]="personToEditForm">
+    <div class="card flex flex-col">
+        <p-toast />
+        <p-table 
+            stripedRows 
+            [loading]="loadingData()" 
             sortField="aileName" 
             [sortOrder]="-1"
-            [value]="personList" 
+            [value]="personList()" 
             [size]="'small'"
             #dt2
             [globalFilterFields]="['name', 'surname', 'chambreNumber', 'aileName']"
@@ -13,150 +17,218 @@
             dataKey="id"
             [expandedRowKeys]="expandedRows"
         >
+            <ng-template #caption>
+                <div class="flex">
+                    <p-button 
+                        title="Ajouter un résident" 
+                        icon="pi pi-plus" 
+                        (click)="addPerson()" 
+                        label="Ajouter un résident" 
+                        severity="contrast"
+                        [outlined]="true"
+                        (keydown.enter)="null"
+                    />
+                    <p-iconfield iconPosition="left" class="ml-auto">
+                        <p-inputicon>
+                            <i class="pi pi-search"></i>
+                        </p-inputicon>
+                        <input pInputText type="text" (input)="dt2.filterGlobal($event.target.value, 'contains')" placeholder="Recherche par mot clé" />
+                    </p-iconfield>
+                        
+                </div>
+            </ng-template>
 
 
-        <ng-template #caption>
-            <div class="flex">
-                <p-iconfield iconPosition="left" class="ml-auto">
-                    <p-inputicon>
-                        <i class="pi pi-search"></i>
-                    </p-inputicon>
-                    <input pInputText type="text" (input)="dt2.filterGlobal($event.target.value, 'contains')" placeholder="Search keyword" />
-                </p-iconfield>
-            </div>
-        </ng-template>
+            <ng-template #header>
+                <tr>
+                    <th scope="col" style="width: 5%"></th>
+                    <th scope="col" pSortableColumn="name" style="width:10%">
+                        <div class="flex items-center gap-2">
+                            Nom
+                            <p-sortIcon field="name" />
+                        </div>
+                    </th>
+                    <th scope="col" pSortableColumn="surname" style="width:10%">
+                        <div class="flex items-center gap-2">
+                            Prénom
+                            <p-sortIcon field="surname" />
+                        </div>
+                    </th>
+                    <th scope="col" pSortableColumn="chambreNumber" style="width:10%">
+                        <div class="flex items-center gap-2">
+                            Chambre
+                            <p-sortIcon field="chambreNumber" />
+                        </div>
+                    </th>
+                    <th scope="col" pSortableColumn="aileName" style="width:10%">
+                        <div class="flex items-center gap-2">
+                            Aile
+                            <p-sortIcon field="aileName" />
+                        </div>
+                    </th>
+                    <th scope="col" style="width:10%">Action</th>
+                </tr>
+            </ng-template>
+
+            <ng-template #body let-person let-editing="editing" let-expanded="expanded" let-ri="rowIndex">
+                
+                <tr [pEditableRow]="person">
+                    <td>
+                        <p-button type="button" pRipple [pRowToggler]="person" [text]="true" severity="secondary" [rounded]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+                    </td>
+                    <td>
+                        <p-cellEditor>
+                            <ng-template #input>
+                                <input 
+                                    title="name" 
+                                    pInputText 
+                                    type="text" 
+                                    formControlName="name" 
+                                />
+                            </ng-template>
+                            <ng-template #output>
+                                {{ person.name }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td>
+                        <p-cellEditor>
+                            <ng-template #input>
+                                <input 
+                                    title="surname" 
+                                    pInputText 
+                                    type="text" 
+                                    formControlName="surname" 
+                                />
+                            </ng-template>
+                            <ng-template #output>
+                                {{ person.surname }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td>
+                        <p-cellEditor>
+                            <ng-template #input>
+                                <input 
+                                    title="chambreNumber" 
+                                    pInputText 
+                                    type="text" 
+                                    formControlName="chambreNumber"
+                                />
+                            </ng-template>
+                            <ng-template #output>
+                                {{ person.chambreNumber }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td>
+                        <p-cellEditor>
+                            <ng-template #input>
+                                <p-select
+                                    id="aile_name"
+                                    size="small" class="w-full" variant="filled"
+                                    [options]="listAiles"
+                                    optionLabel="label"
+                                    optionValue="label"
+                                    formControlName="aileName"
+                                    placeholder="Sélectionner une aile"
+                                    data-testid="select-aile-name"
+                                />
+                            </ng-template>
+                            <ng-template #output>
+                                {{ person.aileName }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <td>
+                        <div class="flex items-center justify-center gap-2">
+                            <p-button 
+                                title="Editer" 
+                                *ngIf="!editing && !editOnlyOneRow" 
+                                icon="pi pi-pencil"
+                                (click)="onRowEditInit(person)" 
+                                label="Editer" 
+                                pInitEditableRow
+                                severity="danger"
+                                [outlined]="true"
+                                (keydown.enter)="null"
+                            />
+
+                            <p-button 
+                                title="Valider" 
+                                *ngIf="editing" 
+                                pSaveEditableRow 
+                                icon="pi pi-check" 
+                                (click)="onRowEditSave()" 
+                                label="Valider" 
+                                severity="success"
+                                [outlined]="true"
+                                (keydown.enter)="null"
+                            />
+
+                            <p-button 
+                                title="Annuler" 
+                                *ngIf="editing" 
+                                pCancelEditableRow 
+                                icon="pi pi-times" 
+                                (click)="onRowEditCancel()" 
+                                label="Annuler" 
+                                severity="help"
+                                [outlined]="true"
+                                (keydown.enter)="null"
+                            />
+
+                            <p-button 
+                                title="Supprimer"
+                                *ngIf="editing" 
+                                icon="pi pi-trash" 
+                                (click)="deletePerson(person.id)" 
+                                label="Supprimer" 
+                                severity="danger" 
+                                [outlined]="true"
+                                (keydown.enter)="null"
+                                />
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
 
 
-        <ng-template #header>
-            <tr>
-                <th style="width: 5%"></th>
-                <th pSortableColumn="name" style="width:5%">
-                    <div class="flex items-center gap-2">
-                        Nom
-                        <p-sortIcon field="name" />
-                    </div>
-                </th>
-                <th pSortableColumn="surname" style="width:5%">
-                    <div class="flex items-center gap-2">
-                        Prénom
-                        <p-sortIcon field="surname" />
-                    </div>
-                </th>
-                <th pSortableColumn="chambreNumber" style="width:5%">
-                    <div class="flex items-center gap-2">
-                        Chambre
-                        <p-sortIcon field="chambreNumber" />
-                    </div>
-                </th>
-                <th pSortableColumn="aileName" style="width:5%">
-                    <div class="flex items-center gap-2">
-                        Aile
-                        <p-sortIcon field="aileName" />
-                    </div>
-                </th>
-                <th style="width:12%">Action</th>
-            </tr>
-        </ng-template>
-
-        <ng-template #body let-person let-editing="editing" let-expanded="expanded" let-ri="rowIndex">
-            
-            <tr [pEditableRow]="person">
-                <td>
-                    <p-button type="button" pRipple [pRowToggler]="person" [text]="true" severity="secondary" [rounded]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
-                </td>
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <input title="name" pInputText type="text" [(ngModel)]="person.name" />
-                        </ng-template>
-                        <ng-template #output>
-                            {{ person.name }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <input title="surname" pInputText type="text" [(ngModel)]="person.surname" required />
-                        </ng-template>
-                        <ng-template #output>
-                            {{ person.surname }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <input title="chambreNumber" pInputText type="text" [(ngModel)]="person.chambreNumber" />
-                        </ng-template>
-                        <ng-template #output>
-                            {{ person.chambreNumber }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-                <td>
-                    <p-cellEditor>
-                        <ng-template #input>
-                            <input title="aileName" pInputText type="text" [(ngModel)]="person.aileName" />
-                        </ng-template>
-                        <ng-template #output>
-                            {{ person.aileName }}
-                        </ng-template>
-                    </p-cellEditor>
-                </td>
-                <td>
-                    <div class="flex items-center justify-center gap-2">
-                        <button title="init" *ngIf="!editing" pButton pRipple type="button" pInitEditableRow icon="pi pi-pencil" (click)="onRowEditInit(person)" severity="danger"></button>
-                        <button title="save" *ngIf="editing" pButton pRipple type="button" pSaveEditableRow icon="pi pi-check" (click)="onRowEditSave(person)" severity="secondary"></button>
-                        <button title="cancel" *ngIf="editing" pButton pRipple type="button" pCancelEditableRow icon="pi pi-times" (click)="onRowEditCancel(person, ri)" severity="secondary"></button>
-                    </div>
-                </td>
-            </tr>
-        </ng-template>
-
-
-        <!-- remplacer #expandedrow par #expansion -->
-        <ng-template #expandedrow let-product>
-                    <tr>
-                        <td colspan="7">
-                            <div class="p-4">
-                                <h5>Graphique des poids</h5>
-                                <p-table [value]="product.orders" dataKey="id">
-                                    <ng-template #header>
-                                        <tr>
-                                            <th pSortableColumn="status">
-                                                <div class="flex items-center gap-2">
-                                                    Status
-                                                    <p-sortIcon field="status" />
-                                                </div>
-                                            </th>
-                                            <th style="width: 4rem"></th>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template #body let-order>
-                                        <tr>
-                                            <td>{{ order.id }}</td>
-                                            <td>{{ order.customer }}</td>
-                                            <td>{{ order.date }}</td>
-                                            <td>{{ order.amount | currency: 'USD' }}</td>
-                                            <td>
-                                                <p-button type="button" icon="pi pi-search" />
-                                            </td>
-                                        </tr>
-                                    </ng-template>
-                                    <ng-template #emptymessage>
-                                        <tr>
-                                            <td colspan="6">There are no order for this product yet.</td>
-                                        </tr>
-                                    </ng-template>
-                                </p-table>
+            <!-- remplacer #expandedrow par #expansion -->
+            <ng-template #expandedrow let-person>
+                <tr>
+                    <td colspan="6">
+                    
+                        <div class="card flex items-center gap-2 flex-wrap">
+                            <div class="mb-4 p-8">
+                                @for(mapperWeight of person.listWeightForTemplate; track mapperWeight[0])
+                                {
+                                    <p-card header="Année {{mapperWeight[0]}}" class="card mb-4">
+                                        <div class="flex items-center gap-4 flex-wrap">   <!-- ← ajouter ce div -->
+                                            @for(monthWeighted of mapperWeight[1]; track monthWeighted.monthStr)
+                                            {
+                                                <p-chip 
+                                                    (click)="editMonthClicked(person, monthWeighted, mapperWeight[0])"
+                                                    class="cursor-pointer"
+                                                    (keydown.enter)="null"
+                                                >
+                                                    <span [ngClass]="getClassSeverity(monthWeighted)" class="text-primary-contrast rounded-full w-8 h-8 flex items-center justify-center">
+                                                        <i [ngClass]="getClassIcon(monthWeighted)" class="pi"></i>
+                                                    </span>
+                                                    <span class="ml-2 font-medium">{{monthWeighted.monthStr}}<br>{{monthWeighted.weight}}</span>
+                                                </p-chip>
+                                            }
+                                        </div>
+                                    </p-card>
+                                }
                             </div>
-                        </td>
-                    </tr>
-                </ng-template>
-    </p-table>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</form>
 </div>
 
-
-
-<p-button (click)="deleteAllAndRefill()" label="Remplir la base de données avec des données de test" class="mt-4"></p-button>
+<p-confirmdialog />

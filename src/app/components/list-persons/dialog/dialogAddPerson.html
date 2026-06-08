@@ -1,0 +1,74 @@
+<div class="flex flex-col gap-6 p-2">
+
+    <!-- Saisie nouveau poids -->
+    <div class="flex flex-col gap-2">
+        @if(!isClosing) {
+        <form [formGroup]="personToAddForm" class="flex flex-col gap-5">
+
+            <div class="flex flex-col gap-2">
+                <p-divider /> 
+                <input
+                    pSize="small"
+                    type="text"
+                    variant="filled"
+                    pInputText
+                    placeholder="Prénom du résident"
+                    formControlName="name"
+                    class="w-full"
+                    data-testid="input-nom"
+                    [invalid]="personToAddForm.controls['name'].invalid && personToAddForm.controls['name'].touched"
+                />
+
+                <input
+                    pSize="small"
+                    type="text"
+                    variant="filled"
+                    pInputText
+                    placeholder="Nom de famille du résident"
+                    formControlName="surname"
+                    class="w-full"
+                    data-testid="input-surname"
+                    [invalid]="personToAddForm.controls['surname'].invalid && personToAddForm.controls['surname'].touched"
+                />
+
+                <input
+                    pSize="small"
+                    type="text"
+                    variant="filled"
+                    pInputText
+                    placeholder="Numéro de chambre du résident"
+                    formControlName="chambreNumber"
+                    class="w-full"
+                    data-testid="input-chambreNumber"
+                    [invalid]="personToAddForm.controls['chambreNumber'].invalid && personToAddForm.controls['chambreNumber'].touched"
+                />
+                @if (personToAddForm.controls['chambreNumber'].invalid && personToAddForm.controls['chambreNumber'].touched) {
+                    <p-message severity="error" size="small" variant="simple">Format accepté 0.00x et -1.00x</p-message>
+                }
+
+                <p-select
+                    id="aile_name"
+                    size="small" class="w-full" variant="filled"
+                    [options]="listAiles"
+                    optionLabel="label"
+                    optionValue="label"
+                    formControlName="aileName"
+                    placeholder="Sélectionner une aile"
+                    data-testid="select-aile-name"
+                />
+
+                @if (personToAddForm.invalid && personToAddForm.touched) {
+                    <p-message severity="error" size="small" variant="simple">Formulaire mal rempli.</p-message>
+                }
+            </div>
+        </form>
+        }
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2 pt-2">
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="closeDialog(null)" />
+        <p-button label="Enregistrer" icon="pi pi-check" (onClick)="closeDialog(true)" />
+    </div>
+
+</div>

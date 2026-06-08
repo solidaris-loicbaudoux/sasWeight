@@ -1,0 +1,43 @@
+<div class="flex flex-col gap-6 p-2">
+
+    <!-- En-tête info personne -->
+    <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2">
+            <i class="pi pi-user text-primary"></i>
+            <span class="font-semibold text-lg">{{ person.name }} {{ person.surname }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-muted-color">
+            <i class="pi pi-calendar"></i>
+            <span>{{ monthWeighted.monthStr }} {{ year }}</span>
+        </div>
+    </div>
+
+    <p-divider />
+
+    <!-- Valeur actuelle -->
+    <div class="flex items-center justify-between px-2">
+        <span class="text-muted-color">Poids actuel</span>
+        <p-tag [value]="monthWeighted.weight" severity="secondary" />
+    </div>
+
+    <!-- Saisie nouveau poids -->
+    <div class="flex flex-col gap-2">
+        <label for="poids" class="font-semibold">Nouveau poids (kg)</label>
+        <p-inputnumber 
+            id="poids" 
+            [(ngModel)]="newWeight"
+            placeholder="Ex: 70.5"
+            class="w-full"
+            name="Poids"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="1"
+        />
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-2 pt-2">
+        <p-button label="Annuler" severity="secondary" [outlined]="true" (onClick)="closeDialog(null)" />
+        <p-button label="Enregistrer" icon="pi pi-check" (onClick)="closeDialog(newWeight)" />
+    </div>
+
+</div>
