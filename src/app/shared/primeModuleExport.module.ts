@@ -30,9 +30,18 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { ChartModule } from 'primeng/chart';
+import { TimelineModule } from 'primeng/timeline';
+import { StepperModule } from 'primeng/stepper';
+import { ChipModule } from 'primeng/chip';
+import { DynamicDialogModule } from 'primeng/dynamicdialog';
+import { DialogService } from 'primeng/dynamicdialog';
+import { InputNumberModule } from 'primeng/inputnumber';
 
-//const iCas = definePreset(Aura, PlectrumTokens);
-const iCas = definePreset(Aura, {
+
+
+
+//const preset = definePreset(Aura, PlectrumTokens);
+const preset = definePreset(Aura, {
   semantic: {
     primary: {
       50: '{sky.50}',
@@ -81,6 +90,12 @@ const iCas = definePreset(Aura, {
     IconFieldModule,
     InputIconModule,
     ChartModule,
+    TimelineModule,
+    StepperModule,
+    ChipModule,
+    DynamicDialogModule,
+    DialogModule,
+    InputNumberModule
   ],
   providers: [
     providePrimeNG({
@@ -105,6 +120,7 @@ const iCas = definePreset(Aura, {
     }),
     MessageService,
     ConfirmationService,
+    DialogService,
   ],
   exports: [
     ButtonModule,
@@ -134,6 +150,12 @@ const iCas = definePreset(Aura, {
     IconFieldModule,
     InputIconModule,
     ChartModule,
+    TimelineModule,
+    StepperModule,
+    ChipModule,
+    DynamicDialogModule,
+    DialogModule,
+    InputNumberModule
   ],
 })
 export class PrimeExportModule {}

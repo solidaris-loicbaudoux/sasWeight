@@ -1,10 +1,12 @@
-import { ChangeDetectorRef, Component, effect, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { Person } from '../../shared/domain/person';
-import { MessageService, SelectItem } from 'primeng/api';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { createPersonToAddForm, Person } from '../../shared/domain/person';
+import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { PersonService } from '../../shared/services/person.service';
-import { isPlatformBrowser } from '@angular/common';
-import DataLabelsPlugin from 'chartjs-plugin-datalabels';
-import { Chart } from 'chart.js';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DialogAddWeight } from './dialog/dialogAddWeight';
+import { DialogAddPerson } from './dialog/dialogAddPerson';
+import { take } from 'rxjs';
+import { Aile, ListAiles } from '../../shared/domain/aile';
 
 
 @Component({
@@ -12,36 +14,38 @@ import { Chart } from 'chart.js';
   standalone: false,
   templateUrl: './list-persons.component.html',
   styleUrl: './list-persons.component.scss',
+  //changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListPersonsComponent implements OnInit {
 
     private readonly personService = inject(PersonService);
     private readonly messageService = inject(MessageService);
-    personList: Person[];
+    private readonly dialogService = inject(DialogService);
+    private readonly confirmationService = inject(ConfirmationService);
+
+
+    readonly personList = this.personService.listPerson_S;
+    readonly loadingData = this.personService.loadingData;
+
     statuses!: SelectItem[];
 
 
     //perlet de cloner la person qui est en train d'être édité pour pouvoir annuler les modifications si besoin
     clonedPerson: { [s: string]: Person } = {};
-    loadingData : boolean;
     expandedRows: { [key: string]: boolean } = {};
 
 
-    constructor() {
-      effect(() => {
-        if(this.personService.listPerson_S()) {
-          this.personList = this.personService.listPerson_S();
-        }
+    listAiles : Aile[] = ListAiles;
 
-          this.loadingData = this.personService.loadingData();
-      })
+    personToEditForm = createPersonToAddForm()
+    editOnlyOneRow : boolean = false;
+    personToEditId!: string;
 
-    }
+    constructor() {}
 
     ngOnInit()
     {
       this.personService.initListPerson()
-      this.initChart();
     }
 
     toggleRow(person: Person): void {
@@ -51,92 +55,153 @@ export class ListPersonsComponent implements OnInit {
           this.expandedRows[person.id] = true;
       }
       this.expandedRows = { ...this.expandedRows };
-  }
+    }
 
     onRowEditInit(person: Person)
     {
-      this.clonedPerson[person.id] = { ...person };
+      //on autorise l'édition d'une seule ligne à la fois pour éviter les problèmes 
+      // de formulaire réactif qui se mélange entre les différentes 
+      // lignes si on en édite plusieurs en même temps
+      this.editOnlyOneRow = true
+      
+      this.personToEditId = person.id
+      this.personToEditForm.reset();  // au cas où l'instance serait réutilisée
+      this.personToEditForm.patchValue({
+        name: person.name,
+        surname: person.surname,
+        chambreNumber: person.chambreNumber,
+        aileName: this.listAiles.find(aile => aile.label === person.aileName)?.label || ''
+      })
     }
 
-    onRowEditSave(person: Person)
+    onRowEditSave()
     {
-        if (person) {
-          this.personService.updatePerson(person);
-            delete this.clonedPerson[person.id];
-            this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Person is updated' });
-        } else {
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Invalid Price' });
+      let personToUpdate = this.personToEditForm.value;
+      personToUpdate.id = this.personToEditId;
+      this.personService.updatePerson(personToUpdate);
+      //on autorise l'édition d'une seule ligne à la fois pour éviter les problèmes 
+      // de formulaire réactif qui se mélange entre les différentes 
+      // lignes si on en édite plusieurs en même temps
+      this.editOnlyOneRow = false
+    }
+
+
+    onRowEditCancel() {
+      //on autorise l'édition d'une seule ligne à la fois pour éviter les problèmes 
+      // de formulaire réactif qui se mélange entre les différentes 
+      // lignes si on en édite plusieurs en même temps
+      this.editOnlyOneRow = false
+    }
+
+
+
+    deletePerson(id: string) {
+      this.confirmationService.confirm({
+        target: event.target as EventTarget,
+        message: 'Voulez-vous supprimer ce résident ?',
+        header: 'Zone de danger',
+        icon: 'pi pi-info-circle',
+        rejectLabel: 'Annuler',
+        rejectButtonProps: {
+            label: 'Annuler',
+            severity: 'secondary',
+            outlined: true
+        },
+        acceptButtonProps: {
+            label: 'Supprimer',
+            severity: 'danger'
+        },
+    
+        accept: () => {
+            this.personService.deletePerson(id);
+        },
+        reject: () => {
+            this.messageService.add({ severity: 'error', summary: 'Annulé', detail: 'Vous avez annulé' });
         }
-    }
-
-    onRowEditCancel(product: Person, index: number) {
-        this.personList[index] = this.clonedPerson[product.id];
-        delete this.clonedPerson[product.id];
+      });
     }
 
 
-    deleteAllAndRefill(){
+
+
+    private  deleteAllAndRefill(){
       this.personService.deleteAllAndRefill()
     }
 
 
+    addPerson(){
+      let ref = this.dialogService.open(DialogAddPerson, { 
+          header: 'Ajouter un résident',
+          width: '30%',
+          height: '60%',
+          data: {
+          }
+      });
 
-    options: any;
-    platformId = inject(PLATFORM_ID);
-    private readonly cd = inject(ChangeDetectorRef);
-
-    
-    initChart()
-    {
-      Chart.register(DataLabelsPlugin);
-      
-      if (isPlatformBrowser(this.platformId))
-      {
-        const documentStyle = getComputedStyle(document.documentElement);
-        const textColor = documentStyle.getPropertyValue('--p-text-color');
-        const textColorSecondary = documentStyle.getPropertyValue('--p-text-muted-color');
-        const surfaceBorder = documentStyle.getPropertyValue('--p-content-border-color');
-      
-        this.options = {
-          maintainAspectRatio: false,
-          aspectRatio: 0.2,
-          plugins: {
-            legend: {
-                labels: { color: textColor }
-            },
-            datalabels: {
-                display: true,
-                color: textColor,
-                anchor: 'end',
-                align: 'top',
-                formatter: (value: number) => `${value} kg`
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                color: textColorSecondary
-              },
-              grid: {
-                color: surfaceBorder,
-                drawBorder: false
-              }
-            },
-            y: {
-              min: 30,
-              max: 150,
-              ticks: {
-                color: textColorSecondary
-              },
-              grid: {
-                color: surfaceBorder,
-                drawBorder: false
-              }
-            }
-          },
-        };
-        this.cd.markForCheck();
-      }
+      ref.onClose.pipe(take(1)).subscribe((personToAdd) => {
+        if (personToAdd) {
+          setTimeout(() => {
+            this.personService.addPerson(personToAdd);
+          }, 200);
+        }
+      })
     }
 
+
+    editMonthClicked(person, monthWeighted, year)
+    {
+      let ref = this.dialogService.open(DialogAddWeight, { 
+          header: 'Ajouter un poids',
+          data: {
+            person: person,
+            monthWeighted: monthWeighted,
+            year: year
+          }
+      });
+
+      ref.onClose.pipe(take(1)).subscribe((newWeight) => {
+        if (newWeight) {
+
+          //on crée une variable pour stocker la date du jour au format "month-year" 
+          // pour pouvoir comparer avec la date du poids ajouté et éviter de modifier 
+          // un poids d'un mois précédent
+          //on gère les 0 pour les mois inférieurs à 10 pour que le format soit toujours le même
+          let currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+          let currentYear = new Date().getFullYear();
+          let currentMonthYear = `${currentMonth}-${currentYear}`;
+          //on slice 3 pour enlever le jour de la date du poids et ne garder que le mois et l'année pour la comparaison
+          //car on encode que le mois et l'année dans la date du poids pour éviter les problèmes de comparaison de date avec les jours
+          let ifExistWeightForMonth = person.listWeight.find((weightEntry) => (weightEntry.date).slice(3) === currentMonthYear);
+          //c'est qu'on est sur le même mois et la même année que le poids ajouté, on peut donc modifier le poids du mois en cours
+          if(ifExistWeightForMonth){
+            person.listWeight = person.listWeight.map((weightEntry) => {
+              if(weightEntry.date === ifExistWeightForMonth.date) {
+                return { date: weightEntry.date, weight: newWeight };
+              }
+              return weightEntry;
+            })
+            this.personService.updatePerson(person);
+          }
+        }
+      })
+    }
+
+    
+    
+    //NgClass
+    getClassSeverity(monthWeighted: any): string {
+        if(monthWeighted.weight === "/") return "bg-gray-500 text-gray-100";
+
+        else if(monthWeighted.evolveStatus?.includes("decrease")) return "bg-red-500 text-red-100";
+        else if(monthWeighted.evolveStatus?.includes("increase")) return "bg-green-500 text-green-100";
+        else return "bg-blue-500 text-blue-100";
+    }
+
+    getClassIcon(monthWeighted: any): string {
+        if(monthWeighted.weight === "/") return "pi-minus";
+
+        else if(monthWeighted.evolveStatus?.includes("decrease")) return "pi-arrow-down";
+        else if(monthWeighted.evolveStatus?.includes("increase")) return "pi-arrow-up";
+        else return "pi-minus";
+    }
 }

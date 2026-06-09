@@ -14,6 +14,8 @@ import { HeaderComponent } from './components/header/header.component';
 import { ListPersonsComponent } from './components/list-persons/list-persons.component';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
+import { DialogAddWeight } from './components/list-persons/dialog/dialogAddWeight';
+import { DialogAddPerson } from './components/list-persons/dialog/dialogAddPerson';
 
 
 
@@ -41,6 +43,8 @@ const app = initializeApp(firebaseConfig);
     StatsComponent,
     HeaderComponent,
     ListPersonsComponent,
+    DialogAddWeight,
+    DialogAddPerson
   ],
   imports: [
     //primeNG modules
