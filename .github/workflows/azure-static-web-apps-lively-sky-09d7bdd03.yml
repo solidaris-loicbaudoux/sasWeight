@@ -36,7 +36,7 @@ jobs:
         uses: Azure/static-web-apps-deploy@v1
         with:
           action: "upload"
-          app_location: "/"
+          app_location: "dist/sasweight/browser"
           api_location: ""
           output_location: "dist/sasweight/browser"
           app_build_command: "npm ci && npm run build"
