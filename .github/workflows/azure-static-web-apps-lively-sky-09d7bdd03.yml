@@ -29,8 +29,8 @@ jobs:
         with:
           node-version: 20
       
-      - run: npm ci
-      - run: npm run build
+      - run: npm install
+      - run: npx run build --if-present
 
       - name: Get Id Token
         uses: actions/github-script@v6
