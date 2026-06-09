@@ -28,7 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      
+          
+      - run: npm install -g npm@latest   # ← mettre à jour npm d'abord
       - run: npm ci
       - run: npm run build
 
@@ -46,8 +47,6 @@ jobs:
           action: "upload"
           app_location: "dist/sasweight/browser"
           api_location: ""
-          output_location: "dist/sasweight/browser"
-          app_build_command: "npm ci && npm run build"
           github_id_token: ${{ steps.idtoken.outputs.result }}
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_SKY_09D7BDD03 }}
           skip_app_build: true
