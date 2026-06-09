@@ -40,8 +40,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 
 
 
-//const iCas = definePreset(Aura, PlectrumTokens);
-const iCas = definePreset(Aura, {
+//const preset = definePreset(Aura, PlectrumTokens);
+const preset = definePreset(Aura, {
   semantic: {
     primary: {
       50: '{sky.50}',
