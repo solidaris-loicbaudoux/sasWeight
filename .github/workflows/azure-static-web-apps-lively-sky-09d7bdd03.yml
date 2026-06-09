@@ -31,6 +31,17 @@ jobs:
            script: |
                return await core.getIDToken()
            result-encoding: string
+           
+      - name: Build And Deploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          app_location: "/"
+          api_location: ""
+          output_location: "dist/sasweight/browser"
+          app_build_command: "npm ci && npm run build"
+          github_id_token: ${{ steps.idtoken.outputs.result }}
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_SKY_09D7BDD03 }}
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
