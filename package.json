@@ -10,8 +10,6 @@
   },
   "private": true,
   "dependencies": {
-    "@actions/core": "^1.6.0",
-    "@actions/http-client": "^4.0.1",
     "@angular/animations": "^20.3.0",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
