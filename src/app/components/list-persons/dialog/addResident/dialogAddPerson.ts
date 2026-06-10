@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
-import { DialogService, DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { createPersonToAddForm, PersonForFirestore } from '../../../../shared/domain/person';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Aile, ListAiles } from '../../../../shared/domain/aile';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FormBuilder} from '@angular/forms';
+import { AileRepository } from '../../../../shared/repository/aile.repository';
+import { PersonFormFactory } from '../../../../shared/helper/formFactory/person';
+import { IPersonFirestore } from '../../../../shared/class/person';
+import { IAile } from '../../../../shared/class/aile';
 
 
 @Component({
@@ -16,7 +18,7 @@ export class DialogAddPerson implements OnInit {
 
     private readonly fb = inject(FormBuilder)
 
-    personToAdd : PersonForFirestore = {
+    personToAdd : IPersonFirestore = {
         name: '',
         surname: '',
         listWeight: [],
@@ -24,13 +26,14 @@ export class DialogAddPerson implements OnInit {
         aileName: ''
     };
 
-    personToAddForm = createPersonToAddForm()
+    personToAddForm = PersonFormFactory.createPersonToAddForm()
 
-    listAiles : Aile[] = ListAiles
+    listAiles : IAile[] = null
 
     isClosing = false;
 
     constructor() {
+        this.listAiles = new AileRepository().get();
     }
 
     ngOnInit() {

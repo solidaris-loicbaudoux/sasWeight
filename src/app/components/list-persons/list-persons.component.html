@@ -141,6 +141,8 @@
                         </p-cellEditor>
                     </td>
                     <td>
+                        editing {{ editing }}
+                        edit only one row {{ editOnlyOneRow }}
                         <div class="flex items-center justify-center gap-2">
                             <p-button 
                                 title="Editer" 
@@ -232,3 +234,5 @@
 </div>
 
 <p-confirmdialog />
+
+<p-button (click)="deleteAllAndRefill()" label="Supprimer tout et remplir" severity="danger" />
