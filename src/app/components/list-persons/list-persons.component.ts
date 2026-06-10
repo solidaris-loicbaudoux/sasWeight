@@ -3,8 +3,8 @@ import { createPersonToAddForm, Person } from '../../shared/domain/person';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { PersonService } from '../../shared/services/person.service';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { DialogAddWeight } from './dialog/dialogAddWeight';
-import { DialogAddPerson } from './dialog/dialogAddPerson';
+import { DialogAddWeight } from './dialog/addWeight/dialogAddWeight';
+import { DialogAddPerson } from './dialog/addResident/dialogAddPerson';
 import { take } from 'rxjs';
 import { Aile, ListAiles } from '../../shared/domain/aile';
 

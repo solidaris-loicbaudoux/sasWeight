@@ -1,11 +1,11 @@
-<div class="flex flex-col gap-6 p-2">
+<div class="flex flex-col gap-6 h-full">
 
     <!-- Saisie nouveau poids -->
     <div class="flex flex-col gap-2">
         @if(!isClosing) {
-        <form [formGroup]="personToAddForm" class="flex flex-col gap-5">
+        <form [formGroup]="personToAddForm">
 
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 pb-4">
                 <p-divider /> 
                 <input
                     pSize="small"
@@ -56,6 +56,7 @@
                     placeholder="Sélectionner une aile"
                     data-testid="select-aile-name"
                 />
+                 <br /><br /><p-divider />
 
                 @if (personToAddForm.invalid && personToAddForm.touched) {
                     <p-message severity="error" size="small" variant="simple">Formulaire mal rempli.</p-message>

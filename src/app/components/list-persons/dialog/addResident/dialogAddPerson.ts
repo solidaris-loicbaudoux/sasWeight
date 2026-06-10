@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { DialogService, DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { createPersonToAddForm, PersonForFirestore } from '../../../shared/domain/person';
+import { createPersonToAddForm, PersonForFirestore } from '../../../../shared/domain/person';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Aile, ListAiles } from '../../../shared/domain/aile';
+import { Aile, ListAiles } from '../../../../shared/domain/aile';
 
 
 @Component({
