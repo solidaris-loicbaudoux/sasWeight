@@ -23,7 +23,7 @@ export const PersonsToLoad: IPersonFirestore[] = [
             { "date": "01-01-2026", "weight": 80 }
         ],
         "chambreNumber": "0002",
-        "aileName": "Saphire"
+        "aileName": "Saphir"
     },
     {
         "id": "3",

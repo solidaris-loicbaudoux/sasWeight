@@ -4,7 +4,6 @@
     <div class="card flex flex-col">
         <p-toast />
         <p-table 
-            stripedRows 
             [loading]="loadingData()" 
             sortField="aileName" 
             [sortOrder]="-1"
@@ -25,7 +24,6 @@
                         (click)="addPerson()" 
                         label="Ajouter un résident" 
                         severity="contrast"
-                        [outlined]="true"
                         (keydown.enter)="null"
                     />
                     <p-iconfield iconPosition="left" class="ml-auto">
@@ -72,7 +70,7 @@
 
             <ng-template #body let-person let-editing="editing" let-expanded="expanded" let-ri="rowIndex">
                 
-                <tr [pEditableRow]="person">
+                <tr [pEditableRow]="person" [style.background-color]="getRowBgColor(person)">
                     <td>
                         <p-button type="button" pRipple [pRowToggler]="person" [text]="true" severity="secondary" [rounded]="true" [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
                     </td>
@@ -150,7 +148,6 @@
                                 label="Editer" 
                                 pInitEditableRow
                                 severity="danger"
-                                [outlined]="true"
                                 (keydown.enter)="null"
                             />
 
@@ -162,7 +159,6 @@
                                 (click)="onRowEditSave()" 
                                 label="Valider" 
                                 severity="success"
-                                [outlined]="true"
                                 (keydown.enter)="null"
                             />
 
@@ -174,7 +170,6 @@
                                 (click)="onRowEditCancel()" 
                                 label="Annuler" 
                                 severity="help"
-                                [outlined]="true"
                                 (keydown.enter)="null"
                             />
 
@@ -185,7 +180,6 @@
                                 (click)="deletePerson(person.id)" 
                                 label="Supprimer" 
                                 severity="danger" 
-                                [outlined]="true"
                                 (keydown.enter)="null"
                                 />
                         </div>

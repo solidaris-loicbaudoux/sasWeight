@@ -1,3 +1,4 @@
+import { Injectable } from "@angular/core";
 import { IAile } from "../models/aile";
 
 
@@ -9,6 +10,9 @@ export interface IAileRepository{
 
 
 
+@Injectable({
+    providedIn: 'root'
+})
 export class AileRepository implements IAileRepository {
 
     protected ailes: IAile[] = [

@@ -24,6 +24,7 @@ export class ListPersonsComponent implements OnInit {
     private readonly messageService = inject(MessageService);
     private readonly dialogService = inject(DialogService);
     private readonly confirmationService = inject(ConfirmationService);
+    private readonly aileRepository = inject(AileRepository);
 
 
     readonly personList = this.personService.listPerson_S;
@@ -44,7 +45,7 @@ export class ListPersonsComponent implements OnInit {
     personToEditId!: string;
 
     constructor() {
-      this.listAiles = new AileRepository().get();
+      this.listAiles = this.aileRepository.get();
     }
 
     ngOnInit()
@@ -100,116 +101,131 @@ export class ListPersonsComponent implements OnInit {
 
 
 
-    deletePerson(id: string) {
-      this.confirmationService.confirm({
-        target: event.target as EventTarget,
-        message: 'Voulez-vous supprimer ce résident ?',
-        header: 'Zone de danger',
-        icon: 'pi pi-info-circle',
-        rejectLabel: 'Annuler',
-        rejectButtonProps: {
-            label: 'Annuler',
-            severity: 'secondary',
-            outlined: true
-        },
-        acceptButtonProps: {
-            label: 'Supprimer',
-            severity: 'danger'
-        },
-    
-        accept: () => {
-            this.personService.deletePerson(id);
-            this.editOnlyOneRow = false
-        },
-        reject: () => {
-            this.messageService.add({ severity: 'error', summary: 'Annulé', detail: 'Vous avez annulé' });
-            this.editOnlyOneRow = false
+  deletePerson(id: string) {
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: 'Voulez-vous supprimer ce résident ?',
+      header: 'Zone de danger',
+      icon: 'pi pi-info-circle',
+      rejectLabel: 'Annuler',
+      rejectButtonProps: {
+          label: 'Annuler',
+          severity: 'secondary',
+          outlined: true
+      },
+      acceptButtonProps: {
+          label: 'Supprimer',
+          severity: 'danger'
+      },
+  
+      accept: () => {
+          this.personService.deletePerson(id);
+          this.editOnlyOneRow = false
+      },
+      reject: () => {
+          this.messageService.add({ severity: 'error', summary: 'Annulé', detail: 'Vous avez annulé' });
+      }
+    });
+
+  }
+
+
+
+
+  deleteAllAndRefill(){
+    this.personService.deleteAllAndRefill()
+  }
+
+
+  addPerson(){
+    let ref = this.dialogService.open(DialogAddPerson, { 
+        header: 'Ajouter un résident',
+        width: '30%',
+        height: '60%',
+        data: {
         }
-      });
+    });
 
-    }
+    ref.onClose.pipe(take(1)).subscribe((personToAdd) => {
+      if (personToAdd) {
+        setTimeout(() => {
+          this.personService.addPerson(personToAdd);
+        }, 200);
+      }
+    })
+  }
 
 
-
-
-    deleteAllAndRefill(){
-      this.personService.deleteAllAndRefill()
-    }
-
-
-    addPerson(){
-      let ref = this.dialogService.open(DialogAddPerson, { 
-          header: 'Ajouter un résident',
-          width: '30%',
-          height: '60%',
-          data: {
-          }
-      });
-
-      ref.onClose.pipe(take(1)).subscribe((personToAdd) => {
-        if (personToAdd) {
-          setTimeout(() => {
-            this.personService.addPerson(personToAdd);
-          }, 200);
+  editMonthClicked(person, monthWeighted, year)
+  {
+    let ref = this.dialogService.open(DialogAddWeight, { 
+        header: 'Ajouter un poids',
+        data: {
+          person: person,
+          monthWeighted: monthWeighted,
+          year: year
         }
-      })
-    }
+    });
 
+    ref.onClose.pipe(take(1)).subscribe((newWeight) => {
+      if (newWeight) {
 
-    editMonthClicked(person, monthWeighted, year)
-    {
-      let ref = this.dialogService.open(DialogAddWeight, { 
-          header: 'Ajouter un poids',
-          data: {
-            person: person,
-            monthWeighted: monthWeighted,
-            year: year
-          }
-      });
-
-      ref.onClose.pipe(take(1)).subscribe((newWeight) => {
-        if (newWeight) {
-
-          //on crée une variable pour stocker la date du jour au format "month-year" 
-          // pour pouvoir comparer avec la date du poids ajouté et éviter de modifier 
-          // un poids d'un mois précédent
-          //on gère les 0 pour les mois inférieurs à 10 pour que le format soit toujours le même
-          let currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
-          let currentYear = new Date().getFullYear();
-          let currentMonthYear = `${currentMonth}-${currentYear}`;
-          //on slice 3 pour enlever le jour de la date du poids et ne garder que le mois et l'année pour la comparaison
-          //car on encode que le mois et l'année dans la date du poids pour éviter les problèmes de comparaison de date avec les jours
-          let ifExistWeightForMonth = person.listWeight.find((weightEntry) => (weightEntry.date).slice(3) === currentMonthYear);
-          //c'est qu'on est sur le même mois et la même année que le poids ajouté, on peut donc modifier le poids du mois en cours
-          if(ifExistWeightForMonth){
-            person.listWeight = person.listWeight.map((weightEntry) => {
-              if(weightEntry.date === ifExistWeightForMonth.date) {
-                return { date: weightEntry.date, weight: newWeight };
-              }
-              return weightEntry;
-            })
-            this.personService.updatePerson(person);
-          }
+        //on crée une variable pour stocker la date du jour au format "month-year" 
+        // pour pouvoir comparer avec la date du poids ajouté et éviter de modifier 
+        // un poids d'un mois précédent
+        //on gère les 0 pour les mois inférieurs à 10 pour que le format soit toujours le même
+        let currentMonth = (new Date().getMonth() + 1).toString().padStart(2, '0');
+        let currentYear = new Date().getFullYear();
+        let currentMonthYear = `${currentMonth}-${currentYear}`;
+        //on slice 3 pour enlever le jour de la date du poids et ne garder que le mois et l'année pour la comparaison
+        //car on encode que le mois et l'année dans la date du poids pour éviter les problèmes de comparaison de date avec les jours
+        let ifExistWeightForMonth = person.listWeight.find((weightEntry) => (weightEntry.date).slice(3) === currentMonthYear);
+        //c'est qu'on est sur le même mois et la même année que le poids ajouté, on peut donc modifier le poids du mois en cours
+        if(ifExistWeightForMonth){
+          person.listWeight = person.listWeight.map((weightEntry) => {
+            if(weightEntry.date === ifExistWeightForMonth.date) {
+              return { date: weightEntry.date, weight: newWeight };
+            }
+            return weightEntry;
+          })
+          this.personService.updatePerson(person);
         }
-      })
+      }
+    })
+  }
+
+  
+  
+  //NgClass
+  getClassSeverity(monthWeighted: any): string {
+      if(monthWeighted.weight === "/") return "bg-gray-500 text-gray-100";
+
+      else if(monthWeighted.evolveStatus?.includes("decrease")) return "bg-red-500 text-red-100";
+      else if(monthWeighted.evolveStatus?.includes("increase")) return "bg-green-500 text-green-100";
+      else return "bg-blue-500 text-blue-100";
+  }
+
+  getClassIcon(monthWeighted: any): string {
+      if(monthWeighted.weight === "/") return "pi-minus";
+
+      else if(monthWeighted.evolveStatus?.includes("decrease")) return "pi-arrow-down";
+      else if(monthWeighted.evolveStatus?.includes("increase")) return "pi-arrow-up";
+      else return "pi-minus";
+  }
+
+  
+  getRowBgColor(person: IPersonUI): string {
+    if(this.aileRepository.getOneByLabel(person.aileName)?.label){
+      switch(person.aileName){
+        case "Saphir": return '#0F52BA';
+        case "Azurite": return '#3c7db1';
+        case "Améthyste": return '#9b59b6';
+        case "Topaze": return '#f1c40f';
+        case "Emeraude": return '#50c895';
+        case "Ambre": return '#ff9800';
+      }
     }
+    return '';
+  }
 
-    
-    
-    //NgClass
-    getClassSeverity(monthWeighted: any): string {
-        if(monthWeighted.weight === "/") return "bg-gray-500 text-gray-100";
-
-        else if(monthWeighted.evolveStatus?.includes("decrease")) return "bg-red-500 text-red-100";
-        else if(monthWeighted.evolveStatus?.includes("increase")) return "bg-green-500 text-green-100";
-        else return "bg-blue-500 text-blue-100";
-    }
-
-    getClassIcon(monthWeighted: any): string {
-        if(monthWeighted.weight === "/") return "pi-minus";
-
-        else if(monthWeighted.evolveStatus?.includes("decrease")) return "pi-arrow-down";
-        else if(monthWeighted.evolveStatus?.includes("increase")) return "pi-arrow-up";
-        else return "pi-minus";
-    }
 }
