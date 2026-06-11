@@ -49,7 +49,7 @@ export class PersonService {
         //générer des années et les mois pour la timeline
         let currentYear = new Date().getFullYear();
         let weightForTemplate: Map<number, any[]> = new Map<number, any[]>();
-
+ 
         for (let year = currentYear; year <= currentYear + 1; year++) {
 
             for (let month = 1; month <= 12; month++) {
