@@ -15,7 +15,7 @@ import { PersonFormFactory } from '../../shared/helper/formFactory/person';
   selector: 'app-list-persons',
   standalone: false,
   templateUrl: './list-persons.component.html',
-  styleUrl: './list-persons.component.scss',
+  styleUrls: ['./list-persons.component.scss'],
   //changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ListPersonsComponent implements OnInit {

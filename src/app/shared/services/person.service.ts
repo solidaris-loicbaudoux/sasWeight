@@ -1,4 +1,4 @@
-import { inject, Injectable, signal, WritableSignal } from "@angular/core";
+import { effect, inject, Injectable, signal, WritableSignal } from "@angular/core";
 import { MessageService } from "primeng/api";
 import { IPersonFirestore, IPersonUI } from "../models/person";
 import { listMonths } from "../utils/others";
@@ -17,10 +17,19 @@ export class PersonService {
 
     listPerson_S: WritableSignal<IPersonUI[]> = signal<IPersonUI[]>([]);
     loadingData = signal(true);
+    chartData_S: WritableSignal<any> = signal<any>([]);
+
+
     private readonly listMonths = listMonths;
 
     constructor() {
         this.listPerson_S = this.PersonRepository.listPerson_S;
+
+        effect(() => {
+            if(this.listPerson_S().length > 0) {
+                this.prepareChartData();
+            }
+        })
     }
 
     async initListPerson() {
@@ -134,6 +143,30 @@ export class PersonService {
         }
 
         return person
+    }
+
+
+    prepareChartData() {
+        const currentYear = new Date().getFullYear();
+
+        const personForChart = this.listPerson_S().map((person: IPersonUI) => {
+            const monthlyData = person.listWeightForTemplate?.get(currentYear) ?? [];
+
+            let lastKnownWeight: number | null = null;
+            const data = monthlyData.map(entry => {
+                if (entry.weight !== '/') {
+                    lastKnownWeight = Number.parseFloat(entry.weight);
+                }
+                return lastKnownWeight;
+            });
+
+            return {
+                label: `${person.name} ${person.surname}`,
+                data: data
+            };
+        });
+
+        this.chartData_S.set(personForChart);
     }
 
     updatePerson(person: IPersonUI): void {

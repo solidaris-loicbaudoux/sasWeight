@@ -13,6 +13,8 @@ export interface IPerson {
 export interface IPersonUI extends IPerson {
     listWeightForTemplate? : Map<number, { monthStr: string; weight: string; evolveStatus: string }[]>;
 
+    listDataForChart?: Number[];
+
 }
 
 
