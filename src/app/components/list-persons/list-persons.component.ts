@@ -1,12 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, effect, inject, OnInit, PLATFORM_ID } from '@angular/core';
-import { createPersonToAddForm, Person } from '../../shared/domain/person';
+import { Component, inject, OnInit } from '@angular/core';
 import { ConfirmationService, MessageService, SelectItem } from 'primeng/api';
 import { PersonService } from '../../shared/services/person.service';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { DialogAddWeight } from './dialog/dialogAddWeight';
-import { DialogAddPerson } from './dialog/dialogAddPerson';
+import { DialogService } from 'primeng/dynamicdialog';
+import { DialogAddWeight } from './dialog/addWeight/dialogAddWeight';
+import { DialogAddPerson } from './dialog/addResident/dialogAddPerson';
 import { take } from 'rxjs';
-import { Aile, ListAiles } from '../../shared/domain/aile';
+import { AileRepository } from '../../shared/repository/aile.repository';
+import { IPersonUI } from '../../shared/models/person';
+import { IAile } from '../../shared/models/aile';
+import { PersonFormFactory } from '../../shared/helper/formFactory/person';
 
 
 @Component({
@@ -31,33 +33,36 @@ export class ListPersonsComponent implements OnInit {
 
 
     //perlet de cloner la person qui est en train d'être édité pour pouvoir annuler les modifications si besoin
-    clonedPerson: { [s: string]: Person } = {};
+    clonedPerson: { [s: string]: IPersonUI } = {};
     expandedRows: { [key: string]: boolean } = {};
 
 
-    listAiles : Aile[] = ListAiles;
+    listAiles : IAile[] = null;
 
-    personToEditForm = createPersonToAddForm()
+    personToEditForm = PersonFormFactory.createPersonToAddForm()
     editOnlyOneRow : boolean = false;
     personToEditId!: string;
 
-    constructor() {}
+    constructor() {
+      this.listAiles = new AileRepository().get();
+    }
 
     ngOnInit()
     {
       this.personService.initListPerson()
     }
 
-    toggleRow(person: Person): void {
-      if (this.expandedRows[person.id]) {
+    toggleRow(person: IPersonUI): void {
+
+      if (this.expandedRows[person.id]) 
           delete this.expandedRows[person.id];
-      } else {
+      else 
           this.expandedRows[person.id] = true;
-      }
+      
       this.expandedRows = { ...this.expandedRows };
     }
 
-    onRowEditInit(person: Person)
+    onRowEditInit(person: IPersonUI)
     {
       //on autorise l'édition d'une seule ligne à la fois pour éviter les problèmes 
       // de formulaire réactif qui se mélange entre les différentes 
@@ -114,17 +119,20 @@ export class ListPersonsComponent implements OnInit {
     
         accept: () => {
             this.personService.deletePerson(id);
+            this.editOnlyOneRow = false
         },
         reject: () => {
             this.messageService.add({ severity: 'error', summary: 'Annulé', detail: 'Vous avez annulé' });
+            this.editOnlyOneRow = false
         }
       });
+
     }
 
 
 
 
-    private  deleteAllAndRefill(){
+    deleteAllAndRefill(){
       this.personService.deleteAllAndRefill()
     }
 
