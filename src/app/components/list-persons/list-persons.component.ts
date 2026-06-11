@@ -6,8 +6,8 @@ import { DialogAddWeight } from './dialog/addWeight/dialogAddWeight';
 import { DialogAddPerson } from './dialog/addResident/dialogAddPerson';
 import { take } from 'rxjs';
 import { AileRepository } from '../../shared/repository/aile.repository';
-import { IPersonUI } from '../../shared/class/person';
-import { IAile } from '../../shared/class/aile';
+import { IPersonUI } from '../../shared/models/person';
+import { IAile } from '../../shared/models/aile';
 import { PersonFormFactory } from '../../shared/helper/formFactory/person';
 
 
@@ -53,11 +53,12 @@ export class ListPersonsComponent implements OnInit {
     }
 
     toggleRow(person: IPersonUI): void {
-      if (this.expandedRows[person.id]) {
+
+      if (this.expandedRows[person.id]) 
           delete this.expandedRows[person.id];
-      } else {
+      else 
           this.expandedRows[person.id] = true;
-      }
+      
       this.expandedRows = { ...this.expandedRows };
     }
 
@@ -118,11 +119,11 @@ export class ListPersonsComponent implements OnInit {
     
         accept: () => {
             this.personService.deletePerson(id);
-            this.editOnlyOneRow = true
+            this.editOnlyOneRow = false
         },
         reject: () => {
             this.messageService.add({ severity: 'error', summary: 'Annulé', detail: 'Vous avez annulé' });
-            this.editOnlyOneRow = true
+            this.editOnlyOneRow = false
         }
       });
 

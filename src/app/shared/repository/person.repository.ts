@@ -1,99 +1,63 @@
-import { inject, Injectable, NgZone } from "@angular/core";
-import { collection, deleteDoc, doc, Firestore, getDocs, onSnapshot, writeBatch } from "@angular/fire/firestore";
-import { IPersonFirestore, IPersonUI } from "../class/person";
-import { BehaviorSubject, Observable } from "rxjs";
+import { inject, Injectable, NgZone, signal, WritableSignal } from "@angular/core";
+import { deleteDoc, doc, getDocs, onSnapshot } from "@angular/fire/firestore";
+import { IPersonFirestore, IPersonUI } from "../models/person";
+import { BehaviorSubject } from "rxjs";
 import { PersonMapper } from "../mapper/person.mapper";
+import { dbFirebase } from "../core/dbFirebase";
+import { PersonsToLoad } from "../core/mocksDataTest/person.mock";
 
 
 @Injectable({
     providedIn: 'root'
 })
-export class PersonRepository {
+export class PersonRepository extends dbFirebase{
 
-    private readonly db = inject(Firestore)
-    private readonly ngZone = inject(NgZone);
+    listPerson_S : WritableSignal<IPersonFirestore[]> = signal<IPersonFirestore[]>([]);
 
-    listPerson$ : BehaviorSubject<IPersonFirestore[]> = new BehaviorSubject<IPersonFirestore[]>([]);
-    private listPerson : IPersonFirestore[] = [];
+    constructor() {
+        super('persons');
+    }
 
-
-    private readonly personsToLoad: IPersonFirestore[] = [
-            {
-                "id": "1",
-                "name": "Saskia",
-                "surname": "Smith",
-                "listWeight": [
-                    { "date": "01-01-2026", "weight": 70 },
-                    { "date": "01-02-2026", "weight": 68 },
-                    { "date": "01-05-2026", "weight": 65 },
-                    { "date": "01-09-2026", "weight": 62 },
-                    { "date": "01-02-2027", "weight": 66 }
-                ],
-                "chambreNumber": "0001",
-                "aileName": "Azurite"
-            },
-            {
-                "id": "2",
-                "name": "John",
-                "surname": "Doe",
-                "listWeight": [
-                    { "date": "01-01-2026", "weight": 80 }
-                ],
-                "chambreNumber": "0002",
-                "aileName": "Saphire"
-            },
-            {
-                "id": "3",
-                "name": "Alice",
-                "surname": "Johnson",
-                "listWeight": [
-                    { "date": "01-01-2026", "weight": 60 },
-                    { "date": "01-02-2026", "weight": 59 },
-                    { "date": "01-03-2026", "weight": 58 }
-                ],
-                "chambreNumber": "-1003",
-                "aileName": "Emeraude"
-    }]
 
     async deleteAllAndRefill(): Promise<void> {
        await this.deleteAllPersons(); // vide la collection
-       this.listPerson = this.personsToLoad; // charge les données de test
+       this.listPerson_S.set(PersonsToLoad); // charge les données de test
        await this.saveListPerson(); // sauvegarde la collection vide pour supprimer les documents existants
     }
 
 
     async addPerson(person: IPersonUI): Promise<void> {
-        const newRef = doc(collection(this.db, 'persons')); // génère un id Firestore
-        const personWithId = { ...person, id: newRef.id };
+        const id = this.generateId_id(); // génère un id Firestore
+        const personWithId = { ...person, id: id };
         console.log("person to add in repo : ", personWithId);
         
-        this.listPerson = [...this.listPerson, PersonMapper.mapper_personUI_personFirestore(personWithId)];
-        this.saveListPerson();
+        this.listPerson_S.set([...this.listPerson_S(), PersonMapper.mapper_personUI_personFirestore(personWithId)]);
+        await this.saveListPerson();
     }
 
 
     async deleteAllPersons(): Promise<void> {
-        const col = collection(this.db, 'persons');
-        const snapshot = await getDocs(col);
-        const batch = writeBatch(this.db);
-        snapshot.docs.forEach(d => batch.delete(doc(col, d.id)));
+        const snapshot = await getDocs(this.collection);
+        const batch = this.createBatch();
+        snapshot.docs.forEach(d => batch.delete(this.getById(d.id)));
         return await batch.commit();
     }
 
+
     async deletePersonFromFirestore(id: string): Promise<void> {
-        const col = collection(this.db, 'persons');
-        return await deleteDoc(doc(col, id));
+        return await this.deleteById(id)
     }
 
 
     async saveListPerson() {
         //copie car writeBatch ne supporte pas les objets avec des propriétés en lecture seule comme les signaux et les maps
-        let listPersonCopy = [...this.listPerson.map(p => PersonMapper.mapper_personUI_personFirestore(p))];
-        const batch = writeBatch(this.db);
-        const col = collection(this.db, 'persons');
+        console.log("listPerson_S to save in firestore : ", this.listPerson_S());
+        let listPersonCopy = [...this.listPerson_S().map(p => PersonMapper.mapper_personUI_personFirestore(p))];
+        const batch = this.createBatch();
 
+        console.log("listPersonCopy to save in firestore : ", listPersonCopy);
         listPersonCopy.forEach(person => {
-            const ref = person.id ? doc(col, person.id) : doc(col); // génère un id si absent
+            const ref = person.id ? this.getById(person.id) : this.generateId_docref(); // génère un id si absent
             batch.set(ref, person);
         });
 
@@ -104,15 +68,7 @@ export class PersonRepository {
 
 
 
-    async listenerPerson(){
-        onSnapshot(collection(this.db, 'persons'), (snapshot) => {
-
-            // comme onSnapshot est en dehors d'Angular, 
-            // il faut utiliser ngZone pour mettre à jour les signaux et rafraîchir la vue
-            this.listPerson$.next(this.ngZone.run(() => {
-                let persons: IPersonFirestore[] = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as IPersonFirestore));
-                return persons
-            }))
-        });
+    listenerPerson(){
+        return this.getListener()
     }
 }

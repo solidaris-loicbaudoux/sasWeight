@@ -1,7 +1,6 @@
-import { inject, Injectable, signal, WritableSignal, NgZone } from "@angular/core";
+import { inject, Injectable, signal, WritableSignal } from "@angular/core";
 import { MessageService } from "primeng/api";
-import { collection, deleteDoc, doc, Firestore, getDocs, onSnapshot,  writeBatch } from "@angular/fire/firestore";
-import { IPersonFirestore, IPersonUI } from "../class/person";
+import { IPersonFirestore, IPersonUI } from "../models/person";
 import { listMonths } from "../utils/others";
 import { PersonRepository } from "../repository/person.repository";
 
@@ -20,18 +19,20 @@ export class PersonService {
     loadingData = signal(true);
     private readonly listMonths = listMonths;
 
+    constructor() {
+        this.listPerson_S = this.PersonRepository.listPerson_S;
+    }
+
     async initListPerson() {
         // écoute en temps réel — se met à jour automatiquement si un autre utilisateur modifie
-        this.PersonRepository.listenerPerson()
-        this.PersonRepository.listPerson$.subscribe((listPersons : IPersonFirestore[]) => {
+        this.PersonRepository.listenerPerson().subscribe(persons => {
             let listPersonUI : IPersonUI[] = [];
-            listPersonUI = listPersons.map(p => this.fillDataForTemplate(p));
+            let copy = [...persons];
+            listPersonUI = copy.map(p => this.fillDataForTemplate(p));
             listPersonUI = listPersonUI.map(p => this.compareWeightForAlert(p));
-            
             this.listPerson_S.set(listPersonUI);
             this.loadingData.set(false);
         })
-
     }
 
     // méthode pour remplir la base de données avec des données de test depuis un fichier JSON
@@ -136,15 +137,13 @@ export class PersonService {
     }
 
     updatePerson(person: IPersonUI): void {
-        const index = this.listPerson_S().findIndex(p => p.id === person.id);
-        if (index !== -1) {
-            let index = this.listPerson_S().findIndex(p => p.id === person.id);
-            let listPersonCopy = [...this.listPerson_S()];
-            listPersonCopy[index] = person;
-            this.listPerson_S.set(listPersonCopy);
-            this.PersonRepository.saveListPerson();
-            this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Résident mis à jour' });
-        }
+        let index = this.listPerson_S().findIndex(p => p.id === person.id);
+        let listPersonCopy = [...this.listPerson_S()];
+        listPersonCopy[index] = person;
+        this.listPerson_S.set(listPersonCopy);
+        console.log(this.listPerson_S());
+        this.PersonRepository.saveListPerson();
+        this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Résident mis à jour' });
     }
 
 

@@ -1,4 +1,4 @@
-import {  IPersonFirestore, IPersonUI,   } from "../class/person";
+import {  IPersonFirestore, IPersonUI,   } from "../models/person";
 
 
 

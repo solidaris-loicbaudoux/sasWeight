@@ -3,8 +3,8 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FormBuilder} from '@angular/forms';
 import { AileRepository } from '../../../../shared/repository/aile.repository';
 import { PersonFormFactory } from '../../../../shared/helper/formFactory/person';
-import { IPersonFirestore } from '../../../../shared/class/person';
-import { IAile } from '../../../../shared/class/aile';
+import { IPersonFirestore } from '../../../../shared/models/person';
+import { IAile } from '../../../../shared/models/aile';
 
 
 @Component({

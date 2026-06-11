@@ -1,4 +1,4 @@
-import { IAile } from "../class/aile";
+import { IAile } from "../models/aile";
 
 
 
